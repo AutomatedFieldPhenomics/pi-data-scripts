@@ -25,5 +25,5 @@ response = requests.get(completeUrl)
 
 # Convert to JSON and store
 r = response.json()
-with open('%s/%s.json' % (dir, now.strftime("%H:%M:%S")), 'w') as file:
+with open('%s/%s.json' % (dir, now.strftime("%H:%M")), 'w') as file:
     json.dump(r, file)
