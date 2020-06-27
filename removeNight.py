@@ -7,7 +7,8 @@ import os
 import datetime
 from pathlib import Path
 
-TWILIGHT = 20  # The approximate duration of twilight in minutes
+TWILIGHT = 0  # The approximate duration of twilight in minutes
+              # When zero only images between sunrise and sunset will be kept
 
 # Gets the sunrise and sunset times for the given date
 def sunriseAndSet( date ):
