@@ -8,7 +8,7 @@ import datetime
 import os
 import ts12591
 
-LUX_THRESHOLD = 5
+LUX_THRESHOLD = 1
 
 def capture():
     camera = PiCamera()
