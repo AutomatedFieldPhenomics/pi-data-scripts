@@ -8,7 +8,7 @@ import csv
 csvFile = 'lightlux.csv'
 
 # Take lux measurment
-tsl = tsl2592()
+tsl = tsl2591()
 full, ir = tsl.get_full_luminosity()
 lux = tsl.calculate_lux(full, ir)
 
