@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Records light levels with tsl2591 lux sensor
+
 from python_tsl2591 import tsl2591
 import os
 import datetime
