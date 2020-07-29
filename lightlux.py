@@ -8,6 +8,12 @@ import datetime
 import csv
 
 csvFile = 'lightlux.csv'
+directory = '/home/pi/sensorData
+path = csvFile + '/' + directory
+
+# Create directory if one does not exist
+if not os.path.exists(directory):
+    os.makedirs(directory)
 
 # Take lux measurment
 tsl = tsl2591()
@@ -21,11 +27,11 @@ time = now.strftime("%H:%M:%S")
 
 # Create CSV header if one does not already exist
 firstRow = "Lux, Full, IR, Date (ymd), Time\n"
-if not os.access(csvFile, os.F_OK):
-    with open(csvFile, 'a') as fd:
+if not os.access(path, os.F_OK):
+    with open(path, 'a') as fd:
         fd.write(firstRow)
 
 # Append data to CSV
 currentRow = "{L},{F},{I},{D},{t}\n".format(L=lux, F=full, I=ir, D=date, t=time)
-with open(csvFile, 'a') as fd:
+with open(path, 'a') as fd:
     fd.write(currentRow)
