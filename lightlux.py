@@ -1,49 +1,82 @@
-#!/usr/bin/env python3
-
-# Records light levels with tsl2591 lux sensor
+#!/usr/bin/python3
 
 from python_tsl2591 import tsl2591
 import os
 import datetime
 import csv
 
-# Append data to CSV
-currentRow = "{L},{F},{I},{D},{t}\n".format(L=lux, F=full, I=ir, D=date, t=time)
-with open(path, 'a') as fd:
-    fd.write(currentRow)
+csvFile = '/home/pi1/sensorData/lightlux3.csv'
+dir = '/home/pi1/sensorData'
 
-def getLux():
-    tsl = tsl2591()
-    full, ir = tsl.get_full_luminosity()
-    lux = tsl.calculate_lux(full, ir)
-    return lux
+def initialize():
+    sensor = tsl2591()
+    sensor.set_timing(0x03)
+    return sensor
 
-def getFile(now):
-    csvFile = now.strftime("%Y-%m") + ".csv"
-    dir = '/home/pi/sensorData/tsl2591'
-    path = dir + '/' + csvFile
+def recordLux(lux, full, ir):
+    # Get current time
+    now = datetime.datetime.now()
+    date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H:%M")
 
-    # Create directory if it doesn't exist
+    # Make directory
     if not os.path.exists(dir):
         os.makedirs(dir)
 
-    # Create csv file if one doesn't exist
-    firstRow = 'Lux, Full, IR, Date (ymd), Time\n'
-    if not os.access(path, os.F_OK):
-        with open(path, 'a') as fd:
+    # Create CSV file
+    firstRow = "Lux, Full, IR, Date (ymd), Time\n"
+    if not os.access(csvFile, os.F_OK):
+        with open(csvFile, 'a') as fd:
             fd.write(firstRow)
 
-    return path
+    # Record data
+    currentRow = '{L},{F},{I},{D},{t}\n'.format(L=lux, F=full, I=ir, D=date, t=time)
+    with open(csvFile, 'a') as fd:
+        fd.write(currentRow)
 
-def recordLux(lux, path):
-    current
+def adjustSensor(sensor):
+    data = sensor.get_current()
+    full = data['full']
+    lux = data['lux']
+    gain = sensor.get_gain()
+    prevGain = gain
+    timing = sensor.get_timing()
+
+    print(sensor.get_current())
+    while ((full < 16383 or full  > 49151) and (gain != 0x00 or timing != 1) and (gain != 0x30 or timing != 5) and 
+            (timing != 5 or prevGain <= gain) and (timing != 1 or prevGain >= gain)):
+        if(full < 16383):
+            if(timing == 5):
+                prevGain = gain
+                gain = gain + 0x10
+                sensor.set_gain(gain)
+                sensor.set_timing(3)
+            else:
+                sensor.set_timing(timing + 1)
+
+        elif(full > 49151):
+            if(timing == 1):
+                prevGain = gain
+                gain = gain - 0x10
+                sensor.set_gain(gain)
+                sensor.set_timing(3)
+            else:
+                sensor.set_timing(timing - 1)
+        
+        data = sensor.get_current()
+        lux = data['lux']
+        full = data['full']
+        timing = sensor.get_timing()
+        print(sensor.get_current())
 
 def main():
-    now = datetime.datetime.now()
-    lux = getLux()
-    path = getFile(now)
+    sensor = initialize()
+    adjustSensor(sensor)
+   
+    full, ir = sensor.get_full_luminosity()
+    lux = sensor.calculate_lux(full, ir)
 
-
+    recordLux(lux, full, ir)
 
 if __name__ == "__main__":
     main()
