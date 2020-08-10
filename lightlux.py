@@ -5,7 +5,7 @@ import os
 import datetime
 import csv
 
-csvFile = '/home/pi1/sensorData/lightlux3.csv'
+csvFile = '/home/pi1/sensorData/lightlux.csv'
 dir = '/home/pi1/sensorData'
 
 def initialize():
@@ -13,7 +13,7 @@ def initialize():
     sensor.set_timing(0x03)
     return sensor
 
-def recordLux(lux, full, ir):
+def recordData(data):
     # Get current time
     now = datetime.datetime.now()
     date = now.strftime("%Y-%m-%d")
@@ -24,25 +24,25 @@ def recordLux(lux, full, ir):
         os.makedirs(dir)
 
     # Create CSV file
-    firstRow = "Lux, Full, IR, Date (ymd), Time\n"
+    firstRow = "Lux, Full, IR, Gain, Integration Time,  Date (ymd), Time\n"
     if not os.access(csvFile, os.F_OK):
         with open(csvFile, 'a') as fd:
             fd.write(firstRow)
 
     # Record data
-    currentRow = '{L},{F},{I},{D},{t}\n'.format(L=lux, F=full, I=ir, D=date, t=time)
+    currentRow = '{L},{F},{I},{G},{i},{D},{t}\n'.format(L=data['lux'], F=data['full'], I=data['ir'], 
+                                                            G=data['gain'], i=data['integration_time'], D=date, t=time)
     with open(csvFile, 'a') as fd:
         fd.write(currentRow)
 
-def adjustSensor(sensor):
+def getData(sensor):
     data = sensor.get_current()
     full = data['full']
-    lux = data['lux']
     gain = sensor.get_gain()
     prevGain = gain
     timing = sensor.get_timing()
 
-    print(sensor.get_current())
+    # Adjusts the sensor's integration time and gain for the current lighting conditions
     while ((full < 16383 or full  > 49151) and (gain != 0x00 or timing != 1) and (gain != 0x30 or timing != 5) and 
             (timing != 5 or prevGain <= gain) and (timing != 1 or prevGain >= gain)):
         if(full < 16383):
@@ -64,19 +64,15 @@ def adjustSensor(sensor):
                 sensor.set_timing(timing - 1)
         
         data = sensor.get_current()
-        lux = data['lux']
         full = data['full']
         timing = sensor.get_timing()
-        print(sensor.get_current())
+
+    return data
 
 def main():
     sensor = initialize()
-    adjustSensor(sensor)
-   
-    full, ir = sensor.get_full_luminosity()
-    lux = sensor.calculate_lux(full, ir)
-
-    recordLux(lux, full, ir)
+    data = getData(sensor) 
+    recordData(data)
 
 if __name__ == "__main__":
     main()
