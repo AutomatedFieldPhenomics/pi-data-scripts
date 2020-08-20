@@ -21,7 +21,7 @@ dir = "images/%s" % now.strftime("%Y-%m-%d")
 if not os.path.exists(dir):
     os.makedirs(dir)
 
-camera.capture('%s/%s.png' % (dir, now.strftime("%H:%M:%S")))
+camera.capture('%s/%s.jpg' % (dir, now.strftime("%H:%M")))
 
 camera.stop_preview()
 
